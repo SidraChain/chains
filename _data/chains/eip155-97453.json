@@ -1,0 +1,25 @@
+{
+  "name": "SidraChain",
+  "title": "SidraChain Private Network",
+  "chain": "ETH",
+  "rpc": [
+    "https://node.sidrachain.com",
+  ],
+  "faucets": [],
+  "nativeCurrency": {
+    "name": "Sidra",
+    "symbol": "SDA",
+    "decimals": 18
+  },
+  "features": [{ "name": "EIP155" }, { "name": "EIP1559" }],
+  "infoURL": "https://www.sidrachain.com/",
+  "shortName": "SDA",
+  "chainId": 97453,
+  "networkId": 97453,
+  "explorers": [{
+    "name": "ledger.sidrachain",
+    "url": "https://ledger.sidrachain.com/",
+    "icon": "ledger.sidrachain",
+    "standard": "EIP3091"
+  }]
+}
