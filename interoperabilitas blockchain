@@ -1,0 +1,7 @@
+Penjelasan
+
+Validasi Input: Memastikan bahwa setiap request menggunakan parameter yang benar dan tersedia.
+
+Fallback Node RPC: Menggunakan beberapa endpoint RPC dan melakukan fallback jika terjadi kegagalan koneksi.
+
+Redis Cache: Caching untuk menghindari penggunaan berlebihan dari node RPC, meningkatkan kinerja.
