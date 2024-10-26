@@ -1,0 +1,66 @@
+const axios = require('axios');
+const Redis = require('ioredis');
+const redis = new Redis();
+const chains = require('./_data/chains.json'); // Mengambil daftar chains dari file JSON
+
+// Fungsi untuk mengakses data rantai menggunakan fallback node RPC
+async function getChainData(chainId) {
+  try {
+    // Ambil rantai yang sesuai dari daftar
+    const chain = chains.find((chain) => chain.chainId === chainId);
+    if (!chain) {
+      throw new Error('Chain not found');
+    }
+
+    // Validasi bahwa chain memiliki RPC nodes
+    if (!chain.rpc || chain.rpc.length === 0) {
+      throw new Error('No RPC nodes available');
+    }
+
+    // Cek cache Redis terlebih dahulu
+    const cachedData = await redis.get(`chainData:${chainId}`);
+    if (cachedData) {
+      console.log('Data retrieved from cache');
+      return JSON.parse(cachedData);
+    }
+
+    // Loop melalui RPC nodes sebagai fallback jika satu node gagal
+    for (const rpcUrl of chain.rpc) {
+      try {
+        const response = await axios.post(rpcUrl, {
+          jsonrpc: '2.0',
+          method: 'eth_blockNumber',
+          params: [],
+          id: 1,
+        });
+        const blockNumber = response.data.result;
+
+        // Simpan data dalam cache Redis dengan TTL 1 menit
+        await redis.set(`chainData:${chainId}`, JSON.stringify({ blockNumber }), 'EX', 60);
+
+        return { blockNumber };
+      } catch (error) {
+        console.warn(`Failed to fetch data from RPC: ${rpcUrl}`, error.message);
+        continue; // Coba node RPC berikutnya
+      }
+    }
+
+    throw new Error('All RPC nodes failed');
+  } catch (error) {
+    console.error('Error fetching chain data:', error.message);
+    throw error;
+  }
+}
+
+// Fungsi utama untuk menangani permintaan dari pengguna
+async function handleRequest(chainId) {
+  try {
+    const data = await getChainData(chainId);
+    console.log(`Current block number for chain ${chainId}:`, data.blockNumber);
+  } catch (error) {
+    console.error('Request failed:', error.message);
+  }
+}
+
+// Contoh pemanggilan fungsi
+handleRequest(1); // Mengambil data dari Ethereum Mainnet dengan chainId 1
